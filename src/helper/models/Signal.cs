@@ -2,6 +2,19 @@
 {
     public class Signal
     {
+        
+        public string ValueIdentifier
+        {
+            get;
+            set;
+        }
+
+        public string SignalIdentifier
+        {
+            get;
+            set;
+        }
+
         public string TagIdentifier
         {
             get;
@@ -9,12 +22,6 @@
         }
 
         public string Delimiter
-        {
-            get;
-            set;
-        }
-
-        public string ValueIdentifier
         {
             get;
             set;

@@ -95,18 +95,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                string streamingValue;
-                string hasMoreDataValue;
-                var url = "/datastream/" + datastream;
-                if (options.TryGetValue("streaming", out streamingValue))
-                {
-                    url += "?streaming=" + Uri.EscapeDataString(streamingValue);
-                }
-                if (options.TryGetValue("hasMoreData", out hasMoreDataValue))
-                {
-                    url += "&hasMoreData=" + Uri.EscapeDataString(hasMoreDataValue);
-                }
-
+                var url = getInputIngestionUrl(datastream, options);
                 var status = _http.PostData(url, data);
                 return JsonConvert.DeserializeObject<InputStatus>(status);
             }
@@ -121,18 +110,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                var url = "/datastream/" + datastream;
-                string streamingValue;
-                string hasMoreDataValue;
-                if (options.TryGetValue("streaming", out streamingValue))
-                {
-
-                    url += "?streaming=" + Uri.EscapeDataString(streamingValue);
-                }
-                if (options.TryGetValue("hasMoreData", out hasMoreDataValue))
-                {
-                    url += "&hasMoreData=" + Uri.EscapeDataString(hasMoreDataValue);
-                }
+                var url = getInputIngestionUrl(datastream, options);
                 var status = _http.Upstream(url, data);
                 return JsonConvert.DeserializeObject<InputStatus>(status);
             }
@@ -226,85 +204,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                var url = "/assessment/" + assessment + "/facts?";
-                string startTimeIdentifier;
-                string endTimeIdentifier;
-                string timeFormat;
-                string timeZone;
-                string entityIdentifier;
-                string valueIdentifier;
-                string tagIdentifier;
-                string additionalTag;
-                var firstReqParam = true;
-
-
-                if (options.TryGetValue("startTimeIdentifier", out startTimeIdentifier))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-
-                    url += "startTimeIdentifier=" + Uri.EscapeDataString(startTimeIdentifier);
-                }
-                if (options.TryGetValue("endTimeIdentifier", out endTimeIdentifier))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-
-                    url += "endTimeIdentifier=" + Uri.EscapeDataString(endTimeIdentifier);
-                }
-                if (options.TryGetValue("timeFormat", out timeFormat))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&timeFormat=" + Uri.EscapeDataString(timeFormat);
-                }
-                if (options.TryGetValue("timeZone", out timeZone))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&timeZone=" + Uri.EscapeDataString(timeZone);
-                }
-                if (options.TryGetValue("entityIdentifier", out entityIdentifier))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&entityIdentifier=" + Uri.EscapeDataString(entityIdentifier);
-                }
-                if (options.TryGetValue("valueIdentifier", out valueIdentifier))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&valueIdentifier=" + Uri.EscapeDataString(valueIdentifier);
-                }
-                if (options.TryGetValue("additionalTag", out additionalTag))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&additionalTag=" + Uri.EscapeDataString(additionalTag);
-                }
-                if (options.TryGetValue("tagIdentifier", out tagIdentifier))
-                {
-                    if (firstReqParam)
-                        firstReqParam = false;
-                    else
-                        url += "&";
-                    url += "&tagIdentifier=" + Uri.EscapeDataString(tagIdentifier);
-                }
-
+                var url = get_add_facts_url(assessment, options);
                 return _http.PostData(url, data);
             }
             catch (Exception)
@@ -409,7 +309,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                var url = "/assessment/" + assessment + "/facts";
+                var url = get_add_facts_url(assessment, options);
                 return _http.Upstream(url, stream);
             }
             catch (Exception)
@@ -575,6 +475,165 @@ namespace falkonry_csharp_client.service
 
                 throw;
             }
+        }
+
+        private string get_add_facts_url(string assessment, SortedDictionary<string, string> options)
+        {
+            var url = "/assessment/" + assessment + "/facts?";
+            try
+            {
+                string startTimeIdentifier;
+                string endTimeIdentifier;
+                string timeFormat;
+                string timeZone;
+                string entityIdentifier;
+                string valueIdentifier;
+                string tagIdentifier;
+                string additionalTag;
+                string batchIdentifier;
+
+                var firstReqParam = true;
+                if (options.TryGetValue("startTimeIdentifier", out startTimeIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "startTimeIdentifier=" + Uri.EscapeDataString(startTimeIdentifier);
+                }
+                if (options.TryGetValue("endTimeIdentifier", out endTimeIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+
+                    url += "endTimeIdentifier=" + Uri.EscapeDataString(endTimeIdentifier);
+                }
+                if (options.TryGetValue("timeFormat", out timeFormat))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "&timeFormat=" + Uri.EscapeDataString(timeFormat);
+                }
+                if (options.TryGetValue("timeZone", out timeZone))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "timeZone=" + Uri.EscapeDataString(timeZone);
+                }
+                if (options.TryGetValue("entityIdentifier", out entityIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "entityIdentifier=" + Uri.EscapeDataString(entityIdentifier);
+                }
+                if (options.TryGetValue("valueIdentifier", out valueIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "valueIdentifier=" + Uri.EscapeDataString(valueIdentifier);
+                }
+                if (options.TryGetValue("additionalTag", out additionalTag))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "additionalTag=" + Uri.EscapeDataString(additionalTag);
+                }
+                if (options.TryGetValue("tagIdentifier", out tagIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "tagIdentifier=" + Uri.EscapeDataString(tagIdentifier);
+                }
+                if (options.TryGetValue("batchIdentifier", out batchIdentifier))
+                {
+                    if (firstReqParam)
+                        firstReqParam = false;
+                    else
+                        url += "&";
+                    url += "batchIdentifier=" + Uri.EscapeDataString(batchIdentifier);
+                }
+
+                return url;
+            }
+            catch(Exception e)
+            {
+                return url;
+            }
+        }
+
+        private String getInputIngestionUrl(string datastreamId, SortedDictionary<string, string> options = null)
+        {
+            string streamingValue;
+            string hasMoreDataValue;
+            string timeFormatValue;
+            string timeZoneValue;
+            string timeIdentifierValue;
+            string entityIdentifierValue;
+            string signalIdentifierValue;
+            string valueIdentifierValue;
+            string batchIdentifierValue;
+
+            var url = "/datastream/" + datastreamId;
+
+            if (options.TryGetValue("streaming", out streamingValue))
+            {
+                url += "?streaming=" + Uri.EscapeDataString(streamingValue);
+            }
+            else
+            {
+                url += "?streaming=true" ;
+            }
+            if (options.TryGetValue("hasMoreData", out hasMoreDataValue))
+            {
+                url += "&hasMoreData=" + Uri.EscapeDataString(hasMoreDataValue);
+            }
+            else
+            {
+                url += "&hasMoreData=true" ;
+            }
+            if (options.TryGetValue("timeFormat", out timeFormatValue))
+            {
+                url += "&timeFormat=" + Uri.EscapeDataString(timeFormatValue);
+            }
+            if (options.TryGetValue("timeZone", out timeZoneValue))
+            {
+                url += "&timeZone=" + Uri.EscapeDataString(timeZoneValue);
+            }
+            if (options.TryGetValue("timeIdentifier", out timeIdentifierValue))
+            {
+                url += "&timeIdentifier=" + Uri.EscapeDataString(timeIdentifierValue);
+            }
+            if (options.TryGetValue("entityIdentifier", out entityIdentifierValue))
+            {
+                url += "&entityIdentifier=" + Uri.EscapeDataString(entityIdentifierValue);
+            }
+            if (options.TryGetValue("signalIdentifier", out signalIdentifierValue))
+            {
+                url += "&signalIdentifier=" + Uri.EscapeDataString(signalIdentifierValue);
+            }
+            if (options.TryGetValue("valueIdentifier", out valueIdentifierValue))
+            {
+                url += "&valueIdentifier=" + Uri.EscapeDataString(valueIdentifierValue);
+            }
+            if (options.TryGetValue("batchIdentifier", out batchIdentifierValue))
+            {
+                url += "&batchIdentifier=" + Uri.EscapeDataString(batchIdentifierValue);
+            }
+            return url;
         }
 
     }
