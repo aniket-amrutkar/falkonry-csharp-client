@@ -5,22 +5,33 @@ namespace falkonry_csharp_client.helper.models
 {
     public class OutputStateResponse
     {
-        public string inputUrl
+        public string InputUrl
         {
             get;
             set;
         }
 
-        public string stopUrl
+        public string OutputStateId
         {
             get;
             set;
         }
 
-        public List<object> outputUrl
+        public string StopUrl
         {
             get;
             set;
         }
+
+        public List<OutputUrl> OutputUrl
+        {
+            get;
+            set;
+        }
+        public string ToJson()
+        {
+            return new JavaScriptSerializer().Serialize(this);
+        }
+
     }
 }

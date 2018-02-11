@@ -95,7 +95,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                var url = getInputIngestionUrl(datastream, options);
+                var url = getInputIngestionUrl("/datastream/"+datastream, options);
                 var status = _http.PostData(url, data);
                 return JsonConvert.DeserializeObject<InputStatus>(status);
             }
@@ -110,7 +110,7 @@ namespace falkonry_csharp_client.service
         {
             try
             {
-                var url = getInputIngestionUrl(datastream, options);
+                var url = getInputIngestionUrl("/datastream/" + datastream, options);
                 var status = _http.Upstream(url, data);
                 return JsonConvert.DeserializeObject<InputStatus>(status);
             }
@@ -478,11 +478,11 @@ namespace falkonry_csharp_client.service
         }
 
         // Start Output
-        public OutputStateResponse startOutput(OutputStateRequest outputState)
+        public OutputStateResponse StartBackfillProcess(OutputStateRequest outputStateRequest)
         {
             try
             {
-                var data = JsonConvert.SerializeObject(outputState, Formatting.Indented,
+                var data = JsonConvert.SerializeObject(outputStateRequest, Formatting.Indented,
                     new JsonSerializerSettings() { ContractResolver = new CamelCasePropertyNamesContractResolver() });
                 var OutputStateRes = _http.Post("/output/start",data);
 
@@ -495,40 +495,62 @@ namespace falkonry_csharp_client.service
         }
 
         //Stop output
-        public void stopOutput(string outputStateId)
+        public void StopBackfillProcess(string outputStateId)
         {
             try
             {
-                _http.Post("/output/" + outputStateId + "stop");
+                _http.Post("/output/" + outputStateId + "/stop", "");
             }
             catch (Exception)
             {
+                throw;
+            }
+        }
+
+
+        public InputStatus AddInputDataToBackfillProcess(string outputStateId, string data, SortedDictionary<string, string> options)
+        {
+            try
+            {
+                var url = getInputIngestionUrl("/output/"+ outputStateId+"/ingest", options);
+                var status = _http.PostData(url, data);
+                return JsonConvert.DeserializeObject<InputStatus>(status);
+            }
+            catch (Exception)
+            {
+
                 throw;
             }
         }
 
         //Stream input data
-        public void streamInputData(string outputStateId)
+        public InputStatus AddInputDataToBackfillProcessByStream(string outputStateId, byte[] data, SortedDictionary<string, string> options)
         {
             try
             {
-                _http.Post("/output/" + outputStateId + "/ingest");
+                var url = getInputIngestionUrl("/output/" + outputStateId + "/ingest", options);
+                var status = _http.Upstream(url, data);
+                return JsonConvert.DeserializeObject<InputStatus>(status);
             }
             catch (Exception)
             {
+
                 throw;
             }
         }
 
         //Get streaming output data
-        public void getOutputData(string outputStateId)
+        public EventSource GetOutputDataFromBackfillProcess(string outputStateId, string assessment)
         {
             try
             {
-                _http.Post("/output/" + outputStateId);
+
+                var url = "/output/" + outputStateId + "?assessment="+ assessment;
+                return _http.Downstream(url);
             }
             catch (Exception)
             {
+
                 throw;
             }
         }
@@ -631,7 +653,7 @@ namespace falkonry_csharp_client.service
             }
         }
 
-        private String getInputIngestionUrl(string datastreamId, SortedDictionary<string, string> options = null)
+        private String getInputIngestionUrl(string url, SortedDictionary<string, string> options = null)
         {
             string streamingValue;
             string hasMoreDataValue;
@@ -642,8 +664,6 @@ namespace falkonry_csharp_client.service
             string signalIdentifierValue;
             string valueIdentifierValue;
             string batchIdentifierValue;
-
-            var url = "/datastream/" + datastreamId;
 
             if (options.TryGetValue("streaming", out streamingValue))
             {

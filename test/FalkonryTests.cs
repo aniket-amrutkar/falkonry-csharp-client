@@ -17,7 +17,7 @@ using System.Threading;
 
 namespace falkonry_csharp_client.Tests
 {
-   [TestClass()]
+    [TestClass()]
     public class TestsDatastream
     {
 
@@ -3148,7 +3148,7 @@ namespace falkonry_csharp_client.Tests
         {
             try
             { var falkonryEvent = JsonConvert.DeserializeObject<FalkonryEvent>(e.Data); }
-            catch(System.Exception exception)
+            catch (System.Exception exception)
             {
                 // exception in parsing the event
                 Assert.AreEqual(exception.Message, null, false);
@@ -3168,15 +3168,15 @@ namespace falkonry_csharp_client.Tests
             string assessment = "assessment-id";
             try
             {
-                
-                eventSource = _falkonry.GetOutput(assessment,null,null);
+
+                eventSource = _falkonry.GetOutput(assessment, null, null);
 
                 //On successfull live streaming output EventSource_Message will be triggered
                 eventSource.Message += EventSource_Message;
 
                 //On any error while getting live streaming output, EventSource_Error will be triggered
                 eventSource.Error += EventSource_Error;
-                
+
                 //Keep stream open for 60sec
                 Thread.Sleep(60000);
 
@@ -3274,5 +3274,158 @@ namespace falkonry_csharp_client.Tests
 
     }
 
-}
 
+    [TestClass]
+    public class TestBackFillProcess
+    {
+        Falkonry _falkonry = new Falkonry("https://dev.falkonry.ai:30064", "ffwaqz371ae52m4j2f7e3o408b2bf1cv");
+        internal class FalkonryEvent
+        {
+            // ReSharper disable once InconsistentNaming
+            public string entity { get; set; }
+            // ReSharper disable once InconsistentNaming
+            public string time { get; set; }
+            // ReSharper disable once InconsistentNaming
+            public string value { get; set; }
+
+            public string batch { get; set; }
+
+            public override string ToString()
+            {
+                return $"{{time: '{time}', entity: '{entity}', value: '{value}', batch: '{batch}'}}";
+            }
+        }
+        EventSource eventSource = null;
+        //Handles live streaming output
+        private void EventSource_Message(object sender, EventSource.ServerSentEventArgs e)
+        {
+            try
+            { var falkonryEvent = JsonConvert.DeserializeObject<FalkonryEvent>(e.Data); }
+            catch (System.Exception exception)
+            {
+                // exception in parsing the event
+                Assert.AreEqual(exception.Message, null, false);
+            }
+        }
+
+        //Handles any error while fetching the live streaming output
+        private void EventSource_Error(object sender, EventSource.ServerSentErrorEventArgs e)
+        {
+            // error connecting to Falkonry service for output streaming
+            Assert.AreEqual(e.Exception.Message, null, false);
+        }
+       
+
+        [TestMethod()]
+        public void TestBackFillProcessFlow()
+        {
+            var javascript = new JavaScriptSerializer();
+            var rnd = new System.Random();
+            var randomNumber = System.Convert.ToString(rnd.Next(1, 10000));
+            var time = new Time();
+            time.Zone = "GMT";
+            time.Identifier = "time";
+            time.Format = "millis";
+
+            var Field = new Field();
+            var Signal = new Signal();
+            var datasource = new Datasource();
+            datasource.Type = "STANDALONE";
+
+            var ds = new DatastreamRequest();
+            Field.EntityIdentifier = "unit";
+            Field.Signal = Signal;
+            Field.Time = time;
+            ds.Field = Field;
+            ds.DataSource = datasource;
+            ds.Name = "TestDS" + randomNumber;
+            ds.Field.Time = time;
+            ds.DataSource = datasource;
+            try
+            {
+                var datastream = _falkonry.CreateDatastream(ds);
+                Assert.AreEqual(ds.Name, datastream.Name, false);
+                Assert.AreNotEqual(null, datastream.Id);
+                Assert.AreEqual(ds.Field.Time.Format, datastream.Field.Time.Format);
+                Assert.AreEqual(ds.Field.Time.Identifier, datastream.Field.Time.Identifier);
+                Assert.AreEqual(ds.DataSource.Type, datastream.DataSource.Type);
+
+                // Create Assessment
+                var asmt = new AssessmentRequest();
+                var randomNumber1 = System.Convert.ToString(rnd.Next(1, 10000));
+                asmt.Name = "TestAssessment" + randomNumber1;
+                asmt.Datastream = datastream.Id;
+                asmt.Rate = "PT0S";
+                var assessment = _falkonry.CreateAssessment(asmt);
+
+
+                // Ingest data to datastream
+                var data = "{\"time\":1518379556131,\"unit\":\"UNIT-1\",\"signal1\":24.112649259789087,\"signal2\":7.40800120700027}";
+                var options = new SortedDictionary<string, string>();
+                options.Add("streaming", "false");
+                options.Add("hasMoreData", "false");
+                var inputstatus = _falkonry.AddInput(datastream.Id, data, options);
+                Assert.AreNotEqual(null, inputstatus.Status);
+
+
+                assessment.Id = "9g7r6g2gg9wtnw";
+                datastream.Id = "hn9jkqhrrk9cjt"; 
+                // Got TO Falkonry UI and run a model revision
+
+                // Start backfill process
+                var outputStateRequest = new OutputStateRequest();
+                outputStateRequest.Datastream = datastream.Id;
+                List<string> listAssessment = new List<string>();
+                listAssessment.Add(assessment.Id);
+                outputStateRequest.Assessment = listAssessment;
+                var outputStateResponse = _falkonry.StartBackfillProcess(outputStateRequest);
+                Assert.AreNotEqual(null,outputStateResponse.OutputStateId);
+                Assert.AreNotEqual(null,outputStateResponse.InputUrl);
+                Assert.AreNotEqual(null, outputStateResponse.OutputUrl);
+                Assert.AreEqual(1, outputStateResponse.OutputUrl.Count);
+
+
+
+                // Ingest data to backfill process
+                data = "{\"time\":1518379559131,\"unit\":\"UNIT-1\",\"signal1\":24.112649259789087,\"signal2\":7.40800120700027}";
+                options = new SortedDictionary<string, string>();
+                inputstatus = _falkonry.AddInputDataToBackfillProcess(outputStateResponse.OutputStateId, data, options);
+                Assert.AreNotEqual(null, inputstatus.Message);
+
+
+                // Listen output of backfill process
+                eventSource = _falkonry.GetOutputDataFromBackfillProcess(outputStateResponse.OutputStateId, assessment.Id);
+
+                //On successfull output EventSource_Message will be triggered
+                eventSource.Message += EventSource_Message;
+
+                //On any error while getting output, EventSource_Error will be triggered
+                eventSource.Error += EventSource_Error;
+
+                //Keep stream open for 60sec
+                //Thread.Sleep(60000);
+
+                eventSource.Dispose();
+                Assert.AreEqual(null, null, true);
+
+
+                // Stop the back fill process
+                _falkonry.StopBackfillProcess(outputStateResponse.OutputStateId);
+
+
+                _falkonry.DeleteDatastream(datastream.Id);
+
+
+
+
+
+
+            }
+            catch (System.Exception exception)
+            {
+                Assert.AreEqual(exception.Message, null, false);
+            }
+        }
+
+    }
+}

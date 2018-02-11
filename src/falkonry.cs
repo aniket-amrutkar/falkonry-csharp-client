@@ -256,50 +256,6 @@ namespace falkonry_csharp_client
             }
         }
 
-        public OutputStateRequest onStartOutput(OutputStateRequest outputState) {
-            try
-            {
-                _falkonryService.startOutput(outputState);
-            }
-            catch (Exception)
-            {
-                throw;    
-            }
-        }
-
-        public void onStopOutput(string outputState) {
-            try
-            {
-                _falkonryService.stopOutput(outputState);
-            }
-            catch (Exception)
-            {
-                throw;    
-            }
-        }
-
-        public void streamInputData(string outputStateId) {
-            try
-            {
-                _falkonryService.streamInputData(outputStateId);
-            }
-            catch (Exception)
-            {
-                throw;    
-            }
-        }
-
-        public void getOutputStreamData(string outputStateId) {
-            try
-            {
-                _falkonryService.getOutputData(outputStateId);
-            }
-            catch (Exception)
-            {
-                throw;    
-            }
-        }
-
         public HttpResponse getFacts(string assessment, SortedDictionary<string, string> options)
         {
             try
@@ -322,6 +278,67 @@ namespace falkonry_csharp_client
             catch (Exception)
             {
 
+                throw;
+            }
+        }
+
+
+        public OutputStateResponse StartBackfillProcess(OutputStateRequest outputStateRequest)
+        {
+            try
+            {
+                return _falkonryService.StartBackfillProcess(outputStateRequest);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public void StopBackfillProcess(string outputStateId)
+        {
+            try
+            {
+                _falkonryService.StopBackfillProcess(outputStateId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public InputStatus AddInputDataToBackfillProcessByStream(string outputStateId, byte[] stream, SortedDictionary<string, string> options)
+        {
+            try
+            {
+                return _falkonryService.AddInputDataToBackfillProcessByStream(outputStateId, stream, options);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public InputStatus AddInputDataToBackfillProcess(string outputStateId, string data, SortedDictionary<string, string> options)
+        {
+            try
+            {
+                return _falkonryService.AddInputDataToBackfillProcess(outputStateId, data, options);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public EventSource GetOutputDataFromBackfillProcess(string outputStateId, string assessmentId)
+        {
+            try
+            {
+                return _falkonryService.GetOutputDataFromBackfillProcess(outputStateId, assessmentId);
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }

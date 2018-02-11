@@ -3,18 +3,19 @@ using System.Web.Script.Serialization;
 
 namespace falkonry_csharp_client.helper.models
 {
-    public class OutputStateRequest
+    public class OutputUrl
     {
-        public string Datastream
+        public string Assessment
         {
             get;
             set;
         }
 
-        public List<string> Assessment
+        public string Url
         {
             get;
             set;
         }
+
     }
 }
