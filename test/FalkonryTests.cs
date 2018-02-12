@@ -3275,10 +3275,10 @@ namespace falkonry_csharp_client.Tests
     }
 
 
-    [TestClass]
+    //[TestClass]
     public class TestBackFillProcess
     {
-        Falkonry _falkonry = new Falkonry("https://dev.falkonry.ai:30064", "ffwaqz371ae52m4j2f7e3o408b2bf1cv");
+        Falkonry _falkonry = new Falkonry("https://localhost:8080", "auth-token");
         internal class FalkonryEvent
         {
             // ReSharper disable once InconsistentNaming
@@ -3403,7 +3403,7 @@ namespace falkonry_csharp_client.Tests
                 eventSource.Error += EventSource_Error;
 
                 //Keep stream open for 60sec
-                //Thread.Sleep(60000);
+                Thread.Sleep(60000);
 
                 eventSource.Dispose();
                 Assert.AreEqual(null, null, true);

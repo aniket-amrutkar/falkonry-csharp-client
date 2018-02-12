@@ -48,6 +48,7 @@ Falkonry C# Client to access [Falkonry Condition Prediction](falkonry.com) APIs
 	* Get Streaming Output
 	* Datastream On (Start live monitoring of datastream)
 	* Datastream Off (Stop live monitoring of datastream)
+	* Run Backfill Process
     
 ## Quick Start
     * Get auth token from the Falkonry Service UI.
@@ -1079,6 +1080,75 @@ Sample CSVFile
     Falkonry falkonry = new Falkonry("http://localhost:8080", token);
 	string datastream_id = "Your datastream id";
 	falkonry.offDatastream(datastream_id);
+```
+#### Run Backfill Process
+```
+	using falkonry_csharp_client;
+    using falkonry_csharp_client.helper.models;
+
+    string token="Add your token here";   
+    Falkonry falkonry = new Falkonry("http://localhost:8080", token);
+
+	string datastream_id = "datastream ID here";
+	string assessment_id ="assessment ID here";
+
+	internal class FalkonryEvent
+    {
+        public string entity { get; set; }
+        public string time { get; set; }
+        public string value { get; set; }
+        public string batch { get; set; }
+        
+        public override string ToString()
+        {
+            return $"{{time: '{time}', entity: '{entity}', value: '{value}', batch: '{batch}'}}";
+        }
+    }
+
+	//On successfull output from backfill process EventSource_Message will be triggered
+	private void EventSource_Message(object sender, EventSource.ServerSentEventArgs e)
+    {
+        try { var falkonryEvent = JsonConvert.DeserializeObject<FalkonryEvent>(e.Data); }
+        catch(System.Exception exception) 
+        { //log error in case of error parsing the output event }
+            
+    }
+
+	//On any error while getting output from backfill process, EventSource_Error will be triggered
+    private void EventSource_Error(object sender, EventSource.ServerSentErrorEventArgs e)
+    { // Error handling }
+
+	// Start backfill process
+    var outputStateRequest = new OutputStateRequest();
+    outputStateRequest.Datastream =datastream_id;
+    List<string> listAssessment = new List<string>();
+    listAssessment.Add(assessment_id);
+    outputStateRequest.Assessment = listAssessment;
+    var outputStateResponse = _falkonry.StartBackfillProcess(outputStateRequest);
+
+
+    // Ingest data to backfill process
+    data = "{\"time\":1518379559131,\"unit\":\"UNIT-1\",\"signal1\":24.112649259789087,\"signal2\":7.40800120700027}";
+    options = new SortedDictionary<string, string>();
+    inputstatus = _falkonry.AddInputDataToBackfillProcess(outputStateResponse.OutputStateId, data, options);
+    Assert.AreNotEqual(null, inputstatus.Message);
+
+
+    // Listen output of backfill process
+    eventSource = _falkonry.GetOutputDataFromBackfillProcess(outputStateResponse.OutputStateId, assessment.Id);
+
+    //On successfull output EventSource_Message will be triggered
+    eventSource.Message += EventSource_Message;
+
+    //On any error while getting output, EventSource_Error will be triggered
+    eventSource.Error += EventSource_Error;
+
+   	// NOTE: To stop listening to output
+	eventSource.Dispose();
+
+    // Stop the back fill process
+    _falkonry.StopBackfillProcess(outputStateResponse.OutputStateId);
+
 ```
 	
 
