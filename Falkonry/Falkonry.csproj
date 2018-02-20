@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\NuGet.Build.Packaging.0.2.2\build\NuGet.Build.Packaging.props" Condition="Exists('..\packages\NuGet.Build.Packaging.0.2.2\build\NuGet.Build.Packaging.props')" />
   <PropertyGroup>
@@ -111,6 +110,9 @@
     <Compile Include="Helper\Models\InputStatus.cs" />
     <Compile Include="Helper\Models\InputType.cs" />
     <Compile Include="Helper\Models\Interval.cs" />
+    <Compile Include="Helper\Models\OutputStateRequest.cs" />
+    <Compile Include="Helper\Models\OutputStateResponse.cs" />
+    <Compile Include="Helper\Models\OutputUrl.cs" />
     <Compile Include="Helper\Models\Signal.cs" />
     <Compile Include="Helper\Models\Stats.cs" />
     <Compile Include="Helper\Models\Time.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="Tests\TestGetFacts.cs" />
     <Compile Include="Tests\TestGetDatastreamData.cs" />
     <Compile Include="Tests\TestGetOutput.cs" />
+    <Compile Include="Tests\TestBackFillProcess.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />

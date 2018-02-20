@@ -76,7 +76,7 @@ namespace Falkonry.Service
     {
       try
       {
-        var url = getInputIngestionUrl(datastream, options);
+        var url = getInputIngestionUrl("/datastream/" +datastream, options);
         var status = _http.PostData(url, data);
         return JsonConvert.DeserializeObject<InputStatus>(status);
       }
@@ -91,7 +91,7 @@ namespace Falkonry.Service
     {
       try
       {
-        var url = getInputIngestionUrl(datastream, options);
+        var url = getInputIngestionUrl("/datastream/" + datastream, options);
         var status = _http.Upstream(url, data);
         return JsonConvert.DeserializeObject<InputStatus>(status);
       }
@@ -460,6 +460,84 @@ namespace Falkonry.Service
       }
     }
 
+    // Start Output
+    public OutputStateResponse StartBackfillProcess(OutputStateRequest outputStateRequest)
+    {
+      try
+      {
+        var data = JsonConvert.SerializeObject(outputStateRequest, Formatting.Indented,
+            new JsonSerializerSettings() { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+        var OutputStateRes = _http.Post("/output/start", data);
+
+        return JsonConvert.DeserializeObject<OutputStateResponse>(OutputStateRes);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+    //Stop output
+    public void StopBackfillProcess(string outputStateId)
+    {
+      try
+      {
+        _http.Post("/output/" + outputStateId + "/stop", "");
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+
+    public InputStatus AddInputDataToBackfillProcess(string outputStateId, string data, SortedDictionary<string, string> options)
+    {
+      try
+      {
+        var url = getInputIngestionUrl("/output/" + outputStateId + "/ingest", options);
+        var status = _http.PostData(url, data);
+        return JsonConvert.DeserializeObject<InputStatus>(status);
+      }
+      catch (Exception)
+      {
+
+        throw;
+      }
+    }
+
+    //Stream input data
+    public InputStatus AddInputDataToBackfillProcessByStream(string outputStateId, byte[] data, SortedDictionary<string, string> options)
+    {
+      try
+      {
+        var url = getInputIngestionUrl("/output/" + outputStateId + "/ingest", options);
+        var status = _http.Upstream(url, data);
+        return JsonConvert.DeserializeObject<InputStatus>(status);
+      }
+      catch (Exception)
+      {
+
+        throw;
+      }
+    }
+
+    //Get streaming output data
+    public EventSource GetOutputDataFromBackfillProcess(string outputStateId, string assessment)
+    {
+      try
+      {
+
+        var url = "/output/" + outputStateId + "?assessment=" + assessment;
+        return _http.Downstream(url);
+      }
+      catch (Exception)
+      {
+
+        throw;
+      }
+    }
+
     private string get_add_facts_url(string assessment, SortedDictionary<string, string> options)
     {
       var url = "/assessment/" + assessment + "/facts?";
@@ -558,7 +636,7 @@ namespace Falkonry.Service
       }
     }
 
-    private String getInputIngestionUrl(string datastreamId, SortedDictionary<string, string> options = null)
+    private String getInputIngestionUrl(string url, SortedDictionary<string, string> options = null)
     {
       string streamingValue;
       string hasMoreDataValue;
@@ -569,8 +647,6 @@ namespace Falkonry.Service
       string signalIdentifierValue;
       string valueIdentifierValue;
       string batchIdentifierValue;
-
-      var url = "/datastream/" + datastreamId;
 
       if (options.TryGetValue("streaming", out streamingValue))
       {

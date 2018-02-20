@@ -269,6 +269,65 @@ namespace Falkonry
         throw;
       }
     }
+    public OutputStateResponse StartBackfillProcess(OutputStateRequest outputStateRequest)
+    {
+      try
+      {
+        return _falkonryService.StartBackfillProcess(outputStateRequest);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+    public void StopBackfillProcess(string outputStateId)
+    {
+      try
+      {
+        _falkonryService.StopBackfillProcess(outputStateId);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+    public InputStatus AddInputDataToBackfillProcessByStream(string outputStateId, byte[] stream, SortedDictionary<string, string> options)
+    {
+      try
+      {
+        return _falkonryService.AddInputDataToBackfillProcessByStream(outputStateId, stream, options);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+    public InputStatus AddInputDataToBackfillProcess(string outputStateId, string data, SortedDictionary<string, string> options)
+    {
+      try
+      {
+        return _falkonryService.AddInputDataToBackfillProcess(outputStateId, data, options);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+
+    public EventSource GetOutputDataFromBackfillProcess(string outputStateId, string assessmentId)
+    {
+      try
+      {
+        return _falkonryService.GetOutputDataFromBackfillProcess(outputStateId, assessmentId);
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
 
     public Tracker GetStatus(String trackerId)
     {
